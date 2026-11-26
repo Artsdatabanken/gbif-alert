@@ -1,0 +1,41 @@
+# Docker
+# Build a Docker image
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+    - pipelines
+
+resources:
+    - repo: self
+
+variables:
+    imageRepository: "artsdatabanken/gbifalert"
+    tag: "$(Build.BuildId)"
+
+stages:
+    - stage: Build
+      displayName: Build image
+      jobs:
+          - job: Build
+            displayName: Build
+            pool:
+                vmImage: ubuntu-latest
+            steps:
+                - task: Docker@2
+                  displayName: Build an image
+                  inputs:
+                      repository: "$(imageRepository)"
+                      command: build
+                      dockerfile: "$(Build.SourcesDirectory)/Dockerfile"
+                      buildContext: "$(Build.SourcesDirectory)"
+                      arguments: "--build-arg VERSION=$(Build.BuildId)"
+                      tags: |
+                          $(tag)
+                - task: Docker@2
+                  displayName: Publish image
+                  inputs:
+                      containerRegistry: "Dockerhub"
+                      repository: "$(imageRepository)"
+                      command: push
+                      tags: |
+                          $(tag)
