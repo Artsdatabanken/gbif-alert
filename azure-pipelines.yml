@@ -9,6 +9,7 @@ resources:
 - repo: self
 
 variables:
+  imageRepository: 'artsdatabanken/gbifalert'
   tag: '$(Build.BuildId)'
 
 stages:
@@ -23,15 +24,19 @@ stages:
     - task: Docker@2
       displayName: Build an image
       inputs:
+        containerRegistry: 'Dockerhub'
+        repository: '$(imageRepository)'
         command: build
         dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
+        buildContext: '$(Build.SourcesDirectory)'
+        arguments: '--build-arg VERSION=$(Build.BuildId)'
         tags: |
           $(tag)
     - task: Docker@2
       displayName: Publish image
       inputs:
-       containerRegistry: "Dockerhub"
-       repository: "artsdatabanken/gbifalert"
-       command: "push"
-       tags: |
-            $(tag)
+        containerRegistry: 'Dockerhub'
+        repository: '$(imageRepository)'
+        command: push
+        tags: |
+          $(tag)
